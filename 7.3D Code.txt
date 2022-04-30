@@ -1,0 +1,30 @@
+from time import sleep
+from gpiozero import DistanceSensor, PWMLED ##imported distance sensor and PWMLed as a library
+from signal import signal, SIGTERM, SIGHUP, pause
+
+led = PWMLED(13) #Set LEd to pin 13 to take the input from the sensor
+sensor = DistanceSensor(echo=17, trigger=4) ##Ultrasonic sensor is set up to send a trigger to pin 4 and recieve the echo/signal on pin 17 
+
+def quitProgram(): ##Exit Program method 
+    exit(1)
+
+running = True
+try:
+     signal(SIGTERM, quitProgram)
+     signal(SIGHUP, quitProgram)
+     led.on()
+     while running: ##loop which constantly runs the sensor distance check
+         distance= sensor.value ##stores iteration sensor value
+         print(f'Distance {distance:1.2f} ,') ##prints iteration sensor value 
+         duty_cycle = round(1.0 - distance,1) ##distance is converted to a duty cycle 
+         if duty_cycle < 0: ##duty cycle is then used to determin LED VALUE 
+             duty_cycle = 0.0 
+         led.value = duty_cycle ##Sets LED brightness level depending on the duty cycle of the current iteration 
+         sleep(0.1)
+            
+except KeyboardInterrupt:
+        pass
+finally:
+        running = False  ##Method which cleans up the Pins and closes the program
+        sensor.close()
+
